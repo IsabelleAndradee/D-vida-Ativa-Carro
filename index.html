@@ -1,0 +1,469 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagamento do carro, Elisa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300..700&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --papel:#EDF0F7;
+    --papel-2:#F7F9FD;
+    --tinta:#1E2A44;
+    --tinta-fraca:#6B7691;
+    --linha:#D3DAE9;
+    --pinho:#2F7A67;
+    --cobre:#B0603C;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papel);color:var(--tinta);font-family:"Karla",system-ui,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .env{max-width:820px;margin:0 auto;padding:28px 20px 64px}
+  h1{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:1.35rem;margin:0 0 2px}
+  .sub{margin:0 0 20px;color:var(--tinta-fraca);font-size:.92rem}
+  h2{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:1.15rem;margin:0 0 14px}
+
+  .painel{background:var(--papel-2);border:1px solid var(--linha);border-radius:18px;padding:26px 24px 22px;margin-bottom:26px}
+  .rotulo{margin:0;font-size:.95rem;color:var(--tinta-fraca)}
+  .saldo{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:clamp(2.5rem,9vw,3.8rem);line-height:1.05;margin:2px 0 4px;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .saldo.quitado{color:var(--pinho)}
+  .de{margin:0 0 20px;color:var(--tinta-fraca);font-size:.95rem}
+  .barra{height:14px;background:#E1E7F3;border-radius:99px;overflow:hidden;display:flex}
+  .barra span{display:block;height:100%;transition:width .45s ease}
+  .fatia-item{background:var(--cobre)}
+  .fatia-dinheiro{background:var(--pinho)}
+  .legenda{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:.9rem}
+  .legenda div{display:flex;align-items:center;gap:8px}
+  .ponto{width:10px;height:10px;border-radius:3px;flex:none}
+  .legenda b{font-weight:600;font-variant-numeric:tabular-nums}
+
+  .cartoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:20px}
+  .cartao{background:#fff;border:1px solid var(--linha);border-radius:13px;padding:13px 15px}
+  .cartao span{display:block;font-size:.82rem;color:var(--tinta-fraca)}
+  .cartao b{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.3rem;font-variant-numeric:tabular-nums}
+  .cartao.alerta{border-color:#E3C3B4;background:#FBEBE4}
+  .cartao.alerta b{color:var(--cobre)}
+
+  .form{background:var(--papel-2);border:1px solid var(--linha);border-radius:18px;padding:22px 24px 24px;margin-bottom:30px}
+  .campos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .campo{display:flex;flex-direction:column;gap:6px}
+  .campo.largo{grid-column:1 / -1}
+  label{font-size:.9rem;font-weight:600}
+  .dica{font-weight:400;color:var(--tinta-fraca)}
+  input[type=text],input[type=date]{font:inherit;color:var(--tinta);background:#fff;border:1px solid var(--linha);border-radius:11px;padding:11px 13px;width:100%}
+  input:focus-visible,button:focus-visible{outline:2.5px solid var(--pinho);outline-offset:2px}
+  .tipos{display:flex;gap:10px}
+  .tipo{flex:1;display:flex;align-items:center;gap:9px;border:1px solid var(--linha);background:#fff;border-radius:11px;padding:11px 13px;cursor:pointer;font-size:.95rem}
+  .tipo input{accent-color:var(--pinho);width:18px;height:18px;margin:0}
+  .tipo.on{border-color:var(--pinho);box-shadow:inset 0 0 0 1px var(--pinho)}
+  .salvar{margin-top:18px;width:100%;font:inherit;font-weight:700;font-size:1rem;background:var(--tinta);color:#fff;border:none;border-radius:12px;padding:14px;cursor:pointer}
+  .salvar:hover{background:#16203a}
+  .salvar:disabled{background:var(--tinta-fraca);cursor:progress}
+  .secundario{margin-top:10px;width:100%;font:inherit;font-weight:600;background:#fff;color:var(--tinta);border:1px solid var(--linha);border-radius:12px;padding:12px;cursor:pointer}
+  .erro{color:var(--cobre);font-size:.9rem;margin:12px 0 0}
+
+  table{width:100%;border-collapse:collapse;font-size:.95rem}
+  th{text-align:left;font-size:.82rem;color:var(--tinta-fraca);font-weight:600;padding:0 10px 8px 0;border-bottom:1px solid var(--linha)}
+  th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td{padding:12px 10px 12px 0;border-bottom:1px solid var(--linha);vertical-align:top}
+  tr.paga{background:#F2F8F5}
+  tr.editando{background:#FFFDF4;box-shadow:inset 3px 0 0 var(--cobre)}
+  .nparc{font-weight:700}
+  .venc{font-size:.84rem;color:var(--tinta-fraca)}
+  .selo{display:inline-block;border-radius:6px;padding:1px 7px;font-size:.78rem;font-weight:600}
+  .selo.item{background:#F6E4DB;color:#8A472A}
+  .selo.dinheiro{background:#DCEDE7;color:#1F5B4C}
+  .selo.atraso{background:#FBEBE4;color:#8F3A33}
+  .acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .acoes button{font:inherit;font-size:.85rem;font-weight:600;background:#fff;border:1px solid var(--linha);border-radius:9px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .acoes .pagar{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+  .acoes .apagar{color:var(--cobre)}
+  .confirmar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;font-size:.88rem}
+  .confirmar .sim{background:var(--cobre);color:#fff;border:1px solid var(--cobre);border-radius:9px;padding:6px 11px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+  .confirmar .nao{background:#fff;border:1px solid var(--linha);border-radius:9px;padding:6px 11px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+
+  .ajuste{margin-top:26px;font-size:.9rem;color:var(--tinta-fraca)}
+  .ajuste button{background:none;border:none;padding:0;font:inherit;color:var(--pinho);text-decoration:underline;cursor:pointer}
+  .edita-venc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .edita-venc input{max-width:190px}
+  .edita-venc button{font:inherit;font-size:.9rem;font-weight:600;border-radius:9px;padding:9px 14px;cursor:pointer}
+  .edita-venc .ok{background:var(--tinta);color:#fff;border:1px solid var(--tinta)}
+  .edita-venc .nao{background:#fff;color:var(--tinta);border:1px solid var(--linha)}
+
+  .carregando{color:var(--tinta-fraca);padding:40px 0;text-align:center}
+  .falha{background:#FBEBE4;border:1px solid #E3C3B4;border-radius:14px;padding:18px 20px;font-size:.95rem}
+  .falha code{background:#fff;padding:1px 5px;border-radius:5px}
+  .rodape{margin-top:28px;font-size:.85rem;color:var(--tinta-fraca)}
+
+  @media (max-width:620px){
+    .campos{grid-template-columns:1fr}
+    .painel,.form{padding:20px 18px}
+    th.esconde,td.esconde{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){ .barra span{transition:none} }
+</style>
+
+<div class="env">
+  <h1>Pagamento do carro</h1>
+  <p class="sub">R$ 55.000,00 emprestados pela Elisa para a compra do carro, em 36 parcelas de R$ 1.988,38, juros de 1,5% ao mês.</p>
+  <div id="app"><p class="carregando">Conectando…</p></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+/* Pagamento do carro. Projeto Firebase próprio: divida-carro. */
+const firebaseConfig = {
+  apiKey: "AIzaSyC2TBWhQn5vrdTXbP4Zyztmydp2VteGWfg",
+  authDomain: "divida-carro.firebaseapp.com",
+  projectId: "divida-carro",
+  storageBucket: "divida-carro.firebasestorage.app",
+  messagingSenderId: "241254977132",
+  appId: "1:241254977132:web:3a3c21f6b22ff8495f9249"
+};
+
+const CAMINHO = ["divida", "carro"];
+
+const PRINCIPAL = 55000;
+const TAXA = 0.015;
+const N = 36;
+const PARCELA = 1988.38;
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ref = doc(db, ...CAMINHO);
+
+let dados = null;              // { primeiroVenc, pagamentos: {n: {data, valor, tipo, obs}} }
+let form = null;               // { n, data, valor, tipo, obs }
+let confirmandoN = null;
+let editandoVenc = false;
+let rascunhoVenc = "";
+let erro = "";
+let gravando = false;
+
+const moeda = v => v.toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+const dataBR = iso => { const [a,m,d] = iso.split("-"); return `${d}/${m}/${a}`; };
+const hoje = () => new Date().toISOString().slice(0,10);
+const escapar = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function parseValor(txt){
+  const limpo = String(txt).trim().replace(/[R$\s]/g,"").replace(/\./g,"").replace(",",".");
+  const n = Number(limpo);
+  return isFinite(n) ? n : NaN;
+}
+
+function somaMeses(iso, k){
+  const [a,m,d] = iso.split("-").map(Number);
+  const base = new Date(Date.UTC(a, m - 1 + k, 1));
+  const ultimo = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0)).getUTCDate();
+  base.setUTCDate(Math.min(d, ultimo));
+  return base.toISOString().slice(0,10);
+}
+
+function diasEntre(isoA, isoB){
+  return Math.round((Date.parse(isoB) - Date.parse(isoA)) / 86400000);
+}
+
+/* tabela Price: juros e amortização de cada parcela */
+function tabela(){
+  const linhas = [];
+  let saldo = PRINCIPAL;
+  for(let k = 1; k <= N; k++){
+    const juros = saldo * TAXA;
+    const amort = PARCELA - juros;
+    saldo = Math.max(0, saldo - amort);
+    linhas.push({ n: k, juros, amort, saldoDepois: saldo, venc: somaMeses(dados.primeiroVenc, k - 1) });
+  }
+  return linhas;
+}
+
+function totais(linhas){
+  let pago = 0, item = 0, dinheiro = 0, pagas = 0, jurosPagos = 0, atrasadas = 0;
+  const h = hoje();
+  for(const l of linhas){
+    const p = dados.pagamentos[l.n];
+    if(p){
+      pago += p.valor;
+      pagas++;
+      jurosPagos += l.juros;
+      if(p.tipo === "item") item += p.valor; else dinheiro += p.valor;
+    }else if(l.venc < h){
+      atrasadas++;
+    }
+  }
+  const previsto = PARCELA * N;
+  return { pago, item, dinheiro, pagas, jurosPagos, atrasadas, previsto, falta: previsto - pago };
+}
+
+/* ---------- conexão ---------- */
+
+function conectar(){
+  onSnapshot(ref, async snap => {
+    if(!snap.exists()){
+      dados = { primeiroVenc: somaMeses(hoje(), 1), pagamentos: {} };
+      await gravar();
+    }else{
+      const d = snap.data();
+      dados = {
+        primeiroVenc: d.primeiroVenc || somaMeses(hoje(), 1),
+        pagamentos: d.pagamentos && typeof d.pagamentos === "object" ? d.pagamentos : {}
+      };
+    }
+    render();
+  }, e => {
+    erro = e.code === "permission-denied"
+      ? "As regras do Firestore estão bloqueando o acesso a divida/carro. Publique a regra desse documento."
+      : "Falha ao ler os dados: " + e.code;
+    render();
+  });
+}
+
+async function gravar(){
+  gravando = true;
+  render();
+  try{
+    await setDoc(ref, {
+      primeiroVenc: dados.primeiroVenc,
+      pagamentos: dados.pagamentos,
+      atualizadoEm: Date.now()
+    });
+    erro = "";
+  }catch(e){
+    erro = e.code === "permission-denied"
+      ? "Sem permissão para gravar. Publique a regra do documento divida/carro."
+      : "Não foi possível salvar: " + e.code;
+  }
+  gravando = false;
+  render();
+}
+
+/* ---------- pagamentos ---------- */
+
+function abrirPagamento(n, l){
+  const p = dados.pagamentos[n];
+  form = p
+    ? { n, data: p.data, valor: p.valor.toFixed(2).replace(".",","), tipo: p.tipo, obs: p.obs || "" }
+    : { n, data: hoje(), valor: PARCELA.toFixed(2).replace(".",","), tipo: "dinheiro", obs: "" };
+  confirmandoN = null;
+  erro = "";
+  render();
+  const campo = document.getElementById("valor");
+  if(campo){ campo.focus(); campo.select(); }
+}
+
+function fecharForm(){ form = null; erro = ""; render(); }
+
+function confirmarForm(){
+  const valor = parseValor(form.valor);
+  if(!form.data){ erro = "Escolha a data em que a parcela foi paga."; return render(); }
+  if(!(valor > 0)){ erro = "Digite um valor maior que zero, por exemplo 1.988,38."; return render(); }
+  erro = "";
+  dados.pagamentos[form.n] = {
+    data: form.data,
+    valor,
+    tipo: form.tipo,
+    obs: form.obs.trim()
+  };
+  form = null;
+  gravar();
+}
+
+function pedirDesfazer(n){ confirmandoN = n; form = null; erro = ""; render(); }
+function cancelarDesfazer(){ confirmandoN = null; render(); }
+
+function desfazer(n){
+  delete dados.pagamentos[n];
+  confirmandoN = null;
+  gravar();
+}
+
+function abrirVenc(){
+  editandoVenc = true;
+  rascunhoVenc = dados.primeiroVenc;
+  render();
+}
+function fecharVenc(){ editandoVenc = false; render(); }
+function salvarVenc(){
+  if(!rascunhoVenc){ erro = "Escolha uma data válida."; return render(); }
+  dados.primeiroVenc = rascunhoVenc;
+  editandoVenc = false;
+  gravar();
+}
+
+/* ---------- tela ---------- */
+
+function render(){
+  const alvo = document.getElementById("app");
+
+  if(!dados){
+    alvo.innerHTML = erro ? `<div class="falha">${escapar(erro)}</div>` : `<p class="carregando">Buscando os pagamentos…</p>`;
+    return;
+  }
+
+  const linhas = tabela();
+  const t = totais(linhas);
+  const pctItem = Math.min(100, t.item / t.previsto * 100);
+  const pctDin = Math.min(100 - pctItem, t.dinheiro / t.previsto * 100);
+  const pctPago = Math.min(100, t.pago / t.previsto * 100);
+  const quitado = t.pagas === N;
+  const proxima = linhas.find(l => !dados.pagamentos[l.n]);
+  const h = hoje();
+
+  alvo.innerHTML = `
+    <section class="painel">
+      <p class="rotulo">${quitado ? "Carro quitado" : "Falta pagar"}</p>
+      <p class="saldo${quitado ? " quitado" : ""}">${moeda(Math.max(0, t.falta))}</p>
+      <p class="de">de ${moeda(t.previsto)} no total, sendo ${moeda(PRINCIPAL)} do carro e ${moeda(t.previsto - PRINCIPAL)} de juros.</p>
+      <div class="barra" role="img" aria-label="${pctPago.toFixed(1)} por cento já pago">
+        <span class="fatia-item" style="width:${pctItem}%"></span>
+        <span class="fatia-dinheiro" style="width:${pctDin}%"></span>
+      </div>
+      <div class="legenda">
+        <div><i class="ponto fatia-item"></i> Em itens <b>${moeda(t.item)}</b></div>
+        <div><i class="ponto fatia-dinheiro"></i> Em dinheiro <b>${moeda(t.dinheiro)}</b></div>
+      </div>
+      <div class="cartoes">
+        <div class="cartao"><span>Parcelas pagas</span><b>${t.pagas} de ${N}</b></div>
+        <div class="cartao"><span>Já pago</span><b>${moeda(t.pago)}</b></div>
+        <div class="cartao"><span>Juros já pagos</span><b>${moeda(t.jurosPagos)}</b></div>
+        ${t.atrasadas > 0
+          ? `<div class="cartao alerta"><span>Parcelas vencidas</span><b>${t.atrasadas}</b></div>`
+          : `<div class="cartao"><span>${quitado ? "Última parcela" : "Próximo vencimento"}</span><b>${quitado ? "paga" : dataBR(proxima.venc)}</b></div>`}
+      </div>
+    </section>
+
+    ${form ? `
+    <section class="form">
+      <h2>Parcela ${form.n} de ${N}${dados.pagamentos[form.n] ? ", editando" : ""}</h2>
+      <div class="campos">
+        <div class="campo">
+          <label for="data">Data do pagamento</label>
+          <input type="date" id="data" value="${form.data}">
+        </div>
+        <div class="campo">
+          <label for="valor">Valor pago <span class="dica">em reais</span></label>
+          <input type="text" id="valor" inputmode="decimal" value="${escapar(form.valor)}">
+        </div>
+        <div class="campo largo">
+          <label>Como foi pago</label>
+          <div class="tipos">
+            <label class="tipo${form.tipo === "item" ? " on" : ""}">
+              <input type="radio" name="tipo" value="item" ${form.tipo === "item" ? "checked" : ""}>
+              Itens que comprei para a Elisa
+            </label>
+            <label class="tipo${form.tipo === "dinheiro" ? " on" : ""}">
+              <input type="radio" name="tipo" value="dinheiro" ${form.tipo === "dinheiro" ? "checked" : ""}>
+              Dinheiro ou Pix para a Elisa
+            </label>
+          </div>
+        </div>
+        <div class="campo largo">
+          <label for="obs">Observação <span class="dica">opcional</span></label>
+          <input type="text" id="obs" placeholder="Pix, parcela adiantada, acerto do mês…" value="${escapar(form.obs)}">
+        </div>
+      </div>
+      <button class="salvar" type="button" id="btn-salvar" ${gravando ? "disabled" : ""}>
+        ${gravando ? "Salvando…" : "Confirmar pagamento da parcela " + form.n}
+      </button>
+      <button class="secundario" type="button" id="btn-fechar">Cancelar</button>
+      ${erro ? `<p class="erro" role="alert">${escapar(erro)}</p>` : ""}
+    </section>` : (erro ? `<p class="erro" role="alert">${escapar(erro)}</p>` : "")}
+
+    <section>
+      <h2>As 36 parcelas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Parcela</th>
+            <th class="num esconde">Juros</th>
+            <th class="num esconde">Amortiza</th>
+            <th class="num">Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${linhas.map(l => {
+            const p = dados.pagamentos[l.n];
+            const atrasada = !p && l.venc < h;
+            const dias = atrasada ? diasEntre(l.venc, h) : 0;
+            return `
+            <tr class="${p ? "paga" : ""}${form && form.n === l.n ? " editando" : ""}">
+              <td>
+                <div class="nparc">${l.n}</div>
+                <div class="venc">vence ${dataBR(l.venc)}</div>
+              </td>
+              <td class="num esconde">${moeda(l.juros)}</td>
+              <td class="num esconde">${moeda(l.amort)}</td>
+              <td class="num">
+                ${p
+                  ? `<div>${moeda(p.valor)}</div>
+                     <div class="venc"><span class="selo ${p.tipo}">${p.tipo === "item" ? "Itens" : "Dinheiro"}</span> ${dataBR(p.data)}</div>
+                     ${p.obs ? `<div class="venc">${escapar(p.obs)}</div>` : ""}`
+                  : `<div>${moeda(PARCELA)}</div>
+                     <div class="venc">${atrasada ? `<span class="selo atraso">vencida há ${dias} ${dias === 1 ? "dia" : "dias"}</span>` : "em aberto"}</div>`}
+              </td>
+              <td>
+                ${confirmandoN === l.n
+                  ? `<div class="confirmar">
+                       <span>Desfazer?</span>
+                       <button class="sim" type="button" data-confirma="${l.n}">Sim</button>
+                       <button class="nao" type="button" data-cancela="1">Não</button>
+                     </div>`
+                  : `<div class="acoes">
+                       ${p
+                         ? `<button class="editar" type="button" data-abrir="${l.n}">Editar</button>
+                            <button class="apagar" type="button" data-desfazer="${l.n}">Desfazer</button>`
+                         : `<button class="pagar" type="button" data-abrir="${l.n}">Registrar pagamento</button>`}
+                     </div>`}
+              </td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+
+      <p class="ajuste">
+        Primeira parcela vence em ${dataBR(dados.primeiroVenc)} ·
+        <button type="button" id="btn-venc">mudar essa data</button>
+      </p>
+      ${editandoVenc ? `
+        <div class="edita-venc">
+          <input type="date" id="venc" value="${rascunhoVenc}">
+          <button class="ok" type="button" id="btn-venc-ok">Salvar</button>
+          <button class="nao" type="button" id="btn-venc-nao">Cancelar</button>
+        </div>` : ""}
+
+      <p class="rodape">Tudo é salvo na nuvem e aparece na hora no outro celular.</p>
+    </section>
+  `;
+
+  if(form){
+    const liga = (id, campo) => {
+      const el = document.getElementById(id);
+      el.oninput = () => { form[campo] = el.value; };
+      el.onkeydown = e => { if(e.key === "Enter") confirmarForm(); };
+    };
+    liga("data", "data");
+    liga("valor", "valor");
+    liga("obs", "obs");
+    document.getElementById("btn-salvar").onclick = confirmarForm;
+    document.getElementById("btn-fechar").onclick = fecharForm;
+    document.querySelectorAll('input[name=tipo]').forEach(r => {
+      r.onchange = () => { form.tipo = r.value; render(); };
+    });
+  }
+
+  document.getElementById("btn-venc").onclick = abrirVenc;
+  const campoVenc = document.getElementById("venc");
+  if(campoVenc){
+    campoVenc.oninput = () => { rascunhoVenc = campoVenc.value; };
+    document.getElementById("btn-venc-ok").onclick = salvarVenc;
+    document.getElementById("btn-venc-nao").onclick = fecharVenc;
+  }
+
+  document.querySelectorAll("[data-abrir]").forEach(b => { b.onclick = () => abrirPagamento(Number(b.dataset.abrir)); });
+  document.querySelectorAll("[data-desfazer]").forEach(b => { b.onclick = () => pedirDesfazer(Number(b.dataset.desfazer)); });
+  document.querySelectorAll("[data-confirma]").forEach(b => { b.onclick = () => desfazer(Number(b.dataset.confirma)); });
+  document.querySelectorAll("[data-cancela]").forEach(b => { b.onclick = cancelarDesfazer; });
+}
+
+conectar();
+</script>
